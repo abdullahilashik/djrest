@@ -7,8 +7,8 @@ class UserProfileManager(BaseUserManager):
 
     def create_user(self, email, name, password=None):
         ''' create user in the system '''
-        if not password:
-            raise ValueError('You need to provide a valid password for the user')
+        if not email:
+            raise ValueError('You need to provide a valid email for the user')
         
         email = self.normalize_email(email)
         user = self.model(name=name, email=email)
@@ -22,18 +22,22 @@ class UserProfileManager(BaseUserManager):
 
         user = self.create_user(email,name,password)
 
+        
+        user.is_superuser = True # this particular column is giving me errors
         user.is_staff = True
-        user.is_superuser = True
+        
 
         user.save(using=self._db)
         return user
 
-class UserProfile(AbstractBaseUser):
+class UserProfile(AbstractBaseUser, PermissionsMixin):
     ''' database model for user in system '''
     name = models.CharField(max_length=255)
     email = models.EmailField(max_length=50, unique=True)
-    is_staff = models.BooleanField(default=False)
+    
+    is_staff = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
+    is_superuser = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name']
@@ -50,3 +54,7 @@ class UserProfile(AbstractBaseUser):
     
     def __str__(self):
         return self.name
+    
+    class Meta:
+        verbose_name = 'User'
+        verbose_name_plural = 'All Users'
